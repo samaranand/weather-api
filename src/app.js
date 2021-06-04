@@ -4,6 +4,7 @@ const cors = require('cors')
 const hbs = require('hbs')
 const geocode = require('./utils/geocode')
 const forecast = require('./utils/forecast')
+const calcTemp = require('./calculateTemp')
 
 const app = express()
 
@@ -63,7 +64,15 @@ app.get('/weather', (req, res) => {
             if (error) {
                 return res.send({ error })
             }
-
+            const dailylength = forecastData.daily.length;
+            for(let i=0; i<dailylength; i+=1){
+                const el = forecastData.daily[i].temp;
+                const k = calcTemp(el)
+                forecastData.daily[i].temp_cal = {
+                    "min" : parseFloat((el.min - k - 273.15).toFixed(2)),
+                    "max" : parseFloat((el.max - k - 273.15).toFixed(2))
+                }
+            }
             res.send({
                 forecast: forecastData,
                 location,
